@@ -9,7 +9,7 @@ An AI-powered mock interview platform designed to help users practice real-time 
 * **AI Intelligence:** Dynamic, real-time follow-up questions based on user responses (In Progress).
 * **Modern UI:** Clean, responsive, and professional dashboard interface.
 
-## 💻 Tech Stack
+##  Tech Stack
 
 * **Frontend:** React.js, Vite, Tailwind CSS, React Router, Framer Motion
 * **Backend:** Node.js, Express.js (REST API)
