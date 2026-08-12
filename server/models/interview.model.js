@@ -2,31 +2,52 @@ const mongoose = require("mongoose");
 
 const interviewSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+
+    userId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User", 
+      required: true 
     },
-    role: {
+    role: { type: String, required: true },
+    experience: { type: String, required: true },
+    techStack: { type: [String], required: true },
+    jobDescription: { type: String, default: "" },
+
+    status: {
       type: String,
-      required: true,
+      enum: ["setup", "in-progress", "completed", "abandoned"],
+      default: "in-progress",
     },
-    experience: {
-      type: String,
-      required: true,
-    },
-    jobDescription: {
-      type: String,
-      default: "",
-    },
-    techStack: {
-      type: [String],
-      required: true,
-    },
+
+    conversation: [
+      {
+        speaker: { type: String, enum: ["ai", "user"], required: true },
+        content: { type: String, required: true },
+        
+        
+        metrics: {
+          correctness: { type: Number, min: 1, max: 10 },
+          communication: { type: Number, min: 1, max: 10 },
+          confidence: { type: Number, min: 1, max: 10 },
+        },
+        
+        feedback: { type: String }, 
+        timeTakenSeconds: { type: Number }, 
+        
+        timestamp: { type: Date, default: Date.now },
+      }
+    ],
+
+
+    finalSummary: {
+      overallScore: { type: Number, min: 1, max: 100 },
+      strengths: { type: [String] },
+      areasOfImprovement: { type: [String] },
+      recommendation: { type: String }, 
+      feedbackSummary: { type: String }
+    }
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const Interview = mongoose.model("Interview", interviewSchema);
-
-module.exports = Interview;
+module.exports = mongoose.model("Interview", interviewSchema);

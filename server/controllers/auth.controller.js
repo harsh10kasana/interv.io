@@ -1,5 +1,5 @@
 const auth = require('../config/firebase');
-const User = require('../models/user.model'); // No need for .js extension with require()
+const User = require('../models/user.model');
 
 const googleAuth = async (req, res) => {
   try {
