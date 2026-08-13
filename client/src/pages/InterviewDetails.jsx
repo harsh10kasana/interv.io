@@ -41,14 +41,11 @@ const InterviewDetails = () => {
     );
   }
 
-  // --- DATA PROCESSING ---
   const aiQuestionsCount = interview.conversation.filter(m => m.speaker === "ai").length;
-  const isCompleted = aiQuestionsCount >= 5; // Assuming 5 is MAX_QUESTIONS
+  const isCompleted = aiQuestionsCount >= 5; 
   
-  // Extract only the user answers that have metrics attached
   const userAnswers = interview.conversation.filter(m => m.speaker === "user" && m.metrics);
 
-  // Calculate Overall Averages
   let avgCorrectness = 0, avgCommunication = 0, avgConfidence = 0;
   if (userAnswers.length > 0) {
     avgCorrectness = Math.round(userAnswers.reduce((acc, curr) => acc + curr.metrics.correctness, 0) / userAnswers.length);
@@ -56,7 +53,6 @@ const InterviewDetails = () => {
     avgConfidence = Math.round(userAnswers.reduce((acc, curr) => acc + curr.metrics.confidence, 0) / userAnswers.length);
   }
 
-  // Format Data for the Graph (Average score per question)
   const chartData = userAnswers.map((ans, idx) => ({
     name: `Q${idx + 1}`,
     score: Math.round((ans.metrics.correctness + ans.metrics.communication + ans.metrics.confidence) / 3)
@@ -66,7 +62,7 @@ const InterviewDetails = () => {
     <div className="min-h-screen bg-[#f3f3f3] py-12 px-4 md:px-8">
       <div className="max-w-5xl mx-auto">
         
-        {/* Top Navigation & Header */}
+
         <button 
           onClick={() => navigate("/interview-history")}
           className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors font-medium mb-8"
@@ -83,7 +79,7 @@ const InterviewDetails = () => {
             <p className="text-gray-500 font-medium">{interview.experience} • {new Date(interview.createdAt).toLocaleDateString()}</p>
           </div>
 
-          {/* Conditional Resume Button */}
+
           {!isCompleted ? (
             <button 
               onClick={() => navigate(`/interview/${interview._id}`)}
@@ -104,7 +100,7 @@ const InterviewDetails = () => {
           </div>
         ) : (
           <>
-            {/* OVERALL METRICS CARDS */}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {[
                 { label: "Correctness", value: avgCorrectness, color: "text-blue-600", bg: "bg-blue-50" },
@@ -122,7 +118,7 @@ const InterviewDetails = () => {
               ))}
             </div>
 
-            {/* PERFORMANCE GRAPH */}
+
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} 
               className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-10"
             >
@@ -146,11 +142,11 @@ const InterviewDetails = () => {
               </div>
             </motion.div>
 
-            {/* DETAILED Q&A BREAKDOWN */}
+
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Detailed Feedback</h2>
             <div className="space-y-6">
               {interview.conversation.map((msg, index) => {
-                // Only render when we hit a User message (so we can grab the AI's preceding question)
+
                 if (msg.speaker !== "user" || !msg.metrics) return null;
                 const question = interview.conversation[index - 1]?.content;
 
@@ -158,7 +154,7 @@ const InterviewDetails = () => {
                   <motion.div key={index} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
                     className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100"
                   >
-                    {/* Question Header */}
+
                     <div className="bg-gray-50 p-6 border-b border-gray-100 flex gap-4">
                       <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0"><BsRobot size={20} /></div>
                       <div>
@@ -168,7 +164,7 @@ const InterviewDetails = () => {
                     </div>
 
                     <div className="p-6">
-                      {/* User Answer */}
+
                       <div className="flex gap-4 mb-6">
                         <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shrink-0"><BsPerson size={20} /></div>
                         <div>
@@ -177,7 +173,7 @@ const InterviewDetails = () => {
                         </div>
                       </div>
 
-                      {/* AI Feedback & Scores */}
+
                       <div className="ml-14 bg-blue-50 border border-blue-100 rounded-2xl p-5">
                         <div className="flex items-center gap-2 mb-3">
                           <BsLightningCharge className="text-blue-500" size={18} />
@@ -185,7 +181,7 @@ const InterviewDetails = () => {
                         </div>
                         <p className="text-gray-700 leading-relaxed mb-4">{msg.feedback}</p>
                         
-                        {/* Mini Score Pills */}
+
                         <div className="flex flex-wrap gap-3">
                           <span className="bg-white px-3 py-1 rounded-full text-sm font-semibold border border-blue-100 text-gray-600">
                             Correctness: <span className="text-blue-600">{msg.metrics.correctness}/10</span>

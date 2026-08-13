@@ -26,12 +26,10 @@ const InterviewHistory = () => {
       
       try {
         const token = await currentUser.getIdToken();
-        // 🚨 Note: Ensure your backend has this route to fetch ALL interviews for the logged-in user!
         const { data } = await axios.get("http://localhost:5001/api/interview", {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Sort newest first
         const sortedData = data.interviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setInterviews(sortedData);
       } catch (error) {
@@ -44,7 +42,6 @@ const InterviewHistory = () => {
     fetchHistory();
   }, [currentUser]);
 
-  // Framer motion variants for the staggered list effect
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -64,7 +61,6 @@ const InterviewHistory = () => {
       
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-12 md:py-20">
         
-        {/* Header Section */}
         <div className="mb-12 text-center md:text-left">
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm font-semibold text-gray-600 shadow-sm mb-4 border border-gray-100">
             <BsClockHistory className="text-blue-500" />
@@ -78,7 +74,6 @@ const InterviewHistory = () => {
           </p>
         </div>
 
-        {/* Content Section */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin mb-4"></div>
@@ -111,9 +106,8 @@ const InterviewHistory = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {interviews.map((session) => {
-              // Calculate how many AI questions were answered
               const questionsAsked = session.conversation.filter(msg => msg.speaker === "ai").length;
-              const isCompleted = questionsAsked >= 5; // Assuming MAX_QUESTIONS is 5
+              const isCompleted = questionsAsked >= 5; 
               const date = new Date(session.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
               return (
@@ -124,7 +118,7 @@ const InterviewHistory = () => {
                   className="bg-white rounded-3xl p-6 shadow-md border border-gray-100 flex flex-col transition-all duration-300 cursor-pointer group"
                   onClick={() => navigate(`/interview/details/${session._id}`)}
                 >
-                  {/* Card Header */}
+
                   <div className="flex justify-between items-start mb-4">
                     <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
                       isCompleted ? "bg-green-50 text-green-600" : "bg-blue-50 text-red-600"
@@ -135,7 +129,7 @@ const InterviewHistory = () => {
                     <span className="text-sm font-medium text-gray-400">{date}</span>
                   </div>
 
-                  {/* Role Details */}
+
                   <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-black line-clamp-1">
                     {session.role}
                   </h3>
@@ -143,7 +137,7 @@ const InterviewHistory = () => {
                     {session.experience} Experience
                   </p>
 
-                  {/* Stats & Tech Stack */}
+
                   <div className="mt-auto pt-6 border-t border-gray-100 flex items-end justify-between">
                     <div>
                       <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Tech Stack</p>
