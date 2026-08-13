@@ -22,7 +22,7 @@ const Navbar = () => {
         transition={{ duration: 0.4 }}
         className="w-full max-w-6xl bg-white rounded-[24px] shadow-sm border border-gray-200 px-8 py-4 flex justify-between items-center relative"
       >
-        <div className="flex items-center gap-3 cursor-pointer">
+        <div onClick={()=>{navigate('/')}} className="flex items-center gap-3 cursor-pointer">
           <div className="bg-black text-white p-2 rounded-lg">
             <BsRobot size={18} />
           </div>

@@ -1,5 +1,16 @@
 const Interview = require("../models/interview.model");
-const askAI=require("../services/openRouter.services")
+const askAI = require("../services/openRouter.services");
+
+const getAllInterviews = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const interviews = await Interview.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, interviews });
+  } catch (error) {
+    console.error("Error fetching interviews:", error);
+    res.status(500).json({ success: false, error: "Server error fetching interviews" });
+  }
+};
 
 const createInterview = async (req, res) => {
   try {
@@ -61,13 +72,22 @@ const startInterview = async (req, res) => {
     }
 
     const prompt = `
-    You are an expert technical interviewer.
     The candidate is applying for a ${interview.role} role with ${interview.experience} of experience. 
     Their tech stack is: ${interview.techStack.join(", ")}. 
     Generate the FIRST interview question to assess their foundational knowledge.
     Respond ONLY with a valid JSON object in this exact format: { "question": "your question here" }`;
 
-    const aiResponse = await askAI(prompt);
+
+    const messages = [
+      { role: "system", content: "You are an expert technical interviewer. You must respond ONLY with a valid JSON object." },
+      { role: "user", content: prompt }
+    ];
+
+    const rawResponse = await askAI({ messages });
+
+
+    const cleanText = rawResponse.replace(/```json/g, "").replace(/```/g, "").trim();
+    const aiResponse = JSON.parse(cleanText);
 
     interview.conversation.push({
       speaker: "ai",
@@ -98,7 +118,6 @@ const submitAnswer = async (req, res) => {
     const lastQuestion = lastMessage.content;
 
     const prompt = `
-    You are a strict technical recruiter interviewing a ${interview.role} (${interview.experience}).
     You asked them: "${lastQuestion}"
     Their answer was: "${userAnswer}"
 
@@ -112,22 +131,32 @@ const submitAnswer = async (req, res) => {
         "communication": <number 1-10>,
         "confidence": <number 1-10>
       },
+      "instantFeedback": "<brief instant feedback on their answer>",
       "feedback": "<brief private feedback on what they did well/poorly>",
       "nextQuestion": "<the next technical question to ask>"
     }`;
 
-    const aiResponse = await askAI(prompt);
 
-    
+    const messages = [
+      { role: "system", content: `You are a strict technical recruiter interviewing a ${interview.role} (${interview.experience}). You must respond ONLY with a valid JSON object.` },
+      { role: "user", content: prompt }
+    ];
+
+    const rawResponse = await askAI({ messages });
+
+
+    const cleanText = rawResponse.replace(/```json/g, "").replace(/```/g, "").trim();
+    const aiResponse = JSON.parse(cleanText);
+
     interview.conversation.push({
       speaker: "user",
       content: userAnswer,
       metrics: aiResponse.metrics,
+      instantFeedback: aiResponse.instantFeedback,
       feedback: aiResponse.feedback,
       timeTakenSeconds: timeTakenSeconds || 0
     });
 
-    
     interview.conversation.push({
       speaker: "ai",
       content: aiResponse.nextQuestion
@@ -138,7 +167,7 @@ const submitAnswer = async (req, res) => {
     res.status(200).json({ 
       success: true,
       nextQuestion: aiResponse.nextQuestion,
-      feedback: aiResponse.feedback,
+      instantFeedback: aiResponse.instantFeedback,
       metrics: aiResponse.metrics
     });
 
@@ -148,12 +177,10 @@ const submitAnswer = async (req, res) => {
   }
 };
 
-
-
-
 module.exports={
     createInterview,
     getInterview,
     submitAnswer,
-    startInterview
+    startInterview,
+    getAllInterviews
 }
