@@ -1,62 +1,62 @@
-# Job Tracker
+# interv.io
 
-A Chrome extension that lets you log job applications in one click while browsing, and manage them from a dashboard. Auto-fills the role and company from the page you're on, syncs to your account via Google Sign-In, and tracks status (Applied, Interviewing, Offer, Rejected) over time.
+An autonomous, full-stack AI-powered mock interview platform that conducts voice-driven technical interviews, evaluates candidate responses in real time, and delivers dynamic performance analytics. Built with React, Node.js, Express, MongoDB, Firebase Auth, and the OpenRouter API.
 
 ## Features
 
-- **One-click logging** — open the extension popup on any job posting page and it auto-fills the role, company, and URL from the page.
-- **Google Sign-In** — accounts are tied to your Google identity via Firebase Auth, using Chrome's native `chrome.identity` API (no popup-blocked OAuth flows).
-- **Dashboard** — a full-page view of all logged applications, with search, status filters, inline status updates, and delete.
-- **Duplicate protection** — won't let you log the same job URL twice.
-- **Per-user data** — every request is scoped to the signed-in user's Firebase UID on the backend.
+- **Hands-Free Autonomous Voice Loop** — zero-click interview arena powered by browser-native Web Speech APIs (`SpeechRecognition` & `SpeechSynthesis`) with cascading silence-detection timers.
+- **Real-Time AI Response Evaluation** — passes candidate transcripts to LLMs via OpenRouter to grade answers instantly on technical correctness, communication clarity, and confidence.
+- **Performance Analytics Dashboard** — full-page view tracking candidate progress over time with interactive trend charts built using `Recharts`.
+- **Firebase Identity Management** — secure user accounts authenticated via Firebase Auth and protected using Firebase Admin token verification middleware.
+- **Session Persistence & History** — stores complete interview transcripts, per-question metrics, and holistic evaluations in MongoDB.
+- **Webcam & Live Audio Visualizer** — real-time camera feed alongside state-driven audio status indicators during speaking and listening phases.
 
 ## Tech Stack
 
-**Extension / Frontend**
-- React
-- React Router (`HashRouter`, since Chrome extensions can't use browser history routing)
+**Frontend**
+- React.js
+- React Router (`BrowserRouter`)
 - Tailwind CSS
-- Firebase Auth (Google provider via `chrome.identity`)
-- Axios
-- React Toastify
+- Framer Motion (animations & layout transitions)
+- Recharts (analytics charts)
+- Web Speech API (`SpeechRecognition` & `SpeechSynthesis`)
+- Axios & React Icons
 
 **Backend**
-- Node.js + Express
-- MongoDB (Mongoose)
-- Firebase Admin SDK (verifies ID tokens from the extension)
-- CORS (locked to the extension's origin)
+- Node.js + Express.js
+- MongoDB + Mongoose ORM
+- Firebase Admin SDK (token verification middleware)
+- OpenRouter API (LLM evaluation engine)
 
 ## Project Structure
 
 ```
-job-tracker/
-├── extension/               # Chrome extension (React + Vite)
+interv.io/
+├── client/                     # React Frontend
 │   ├── src/
-│   │   ├── popup/
-│   │   │   ├── popup.jsx       # Quick-add job form
-│   │   │   └── auth.jsx        # Google Sign-In screen
 │   │   ├── pages/
-│   │   │   └── dashboard.jsx   # Full dashboard view
+│   │   │   ├── InterviewArena.jsx  # Hands-free interview room
+│   │   │   ├── Dashboard.jsx       # Analytics & session history
+│   │   │   └── Auth.jsx            # Sign-in / Sign-up page
 │   │   ├── context/
-│   │   │   └── authContext.jsx # Firebase auth state + login/logout
-│   │   ├── utils/
-│   │   │   └── firebase.js     # Firebase config/init
-│   │   ├── content.js          # Reads job info from the current page
-│   │   └── App.jsx             # Routes
-│   ├── manifest.json
-│   └── package.json
+│   │   │   └── AuthContext.jsx     # Firebase auth provider
+│   │   ├── config/
+│   │   │   └── firebase.js         # Firebase client config
+│   │   └── App.jsx                 # Routes & layout
+│   ├── package.json
+│   └── tailwind.config.js
 │
-└── server/                  # Express API
+└── server/                     # Express API
+    ├── config/                 # DB & Firebase Admin setup
     ├── controllers/
-    │   └── job.controller.js
-    ├── models/
-    │   └── job.model.js
-    ├── routes/
-    │   ├── jobs.route.js
-    │   └── auth.route.js
+    │   └── interview.controller.js # AI prompt & evaluation handlers
     ├── middleware/
-    │   └── (Firebase token verification)
-    ├── app.js
+    │   └── auth.middleware.js     # Firebase token guard
+    ├── models/
+    │   └── interview.model.js     # Mongoose schema for sessions
+    ├── routes/
+    │   └── interview.route.js
+    ├── server.js
     └── package.json
 ```
 
@@ -65,73 +65,71 @@ job-tracker/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/yourusername/job-tracker.git
-cd job-tracker
+git clone https://github.com/yourusername/interv.io.git
+cd interv.io
 
 cd server && npm install
-cd ../extension && npm install
+cd ../client && npm install
 ```
 
 ### 2. Environment variables
 
 **`server/.env`**
-```
-MONGO_URI=your_mongodb_connection_string
+```env
 PORT=5001
+MONGO_URI=your_mongodb_connection_string
+OPENROUTER_API_KEY=your_openrouter_api_key
+FIREBASE_SERVICE_ACCOUNT_KEY=path_to_firebase_service_account.json
 ```
-(Plus whatever Firebase Admin credentials your server auth middleware expects.)
 
-**`extension/.env`**
-```
-VITE_FIREBASE_APIKEY=your_firebase_api_key
+**`client/.env`**
+```env
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_BACKEND_URL=http://localhost:5001
 ```
 
 Neither `.env` file is committed — see `.gitignore`.
 
-### 3. Firebase & Google Cloud setup
+### 3. Firebase & OpenRouter setup
 
-1. Create a Firebase project and enable **Google** as a sign-in provider under Authentication.
-2. In [Google Cloud Console](https://console.cloud.google.com/), under the same project, create an OAuth Client ID of type **Chrome Extension**.
-3. Set the **Item ID** field to your extension's ID (find it at `chrome://extensions` with Developer Mode on, after loading the extension unpacked once).
-4. Add that OAuth client ID to `extension/manifest.json`:
-   ```json
-   "oauth2": {
-     "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-     "scopes": ["openid", "email", "profile"]
-   }
-   ```
-
-> **Note:** `chrome.identity.getAuthToken()` relies on Chrome's built-in Google account integration, so this sign-in flow only works in actual Google Chrome — not Chromium forks like Brave, Edge, or Opera.
+1. Create a Firebase project and enable **Email/Password** or **Google** as a sign-in provider under Authentication.
+2. Generate a Service Account private key JSON file from Firebase Project Settings → Service Accounts and link it in `server/.env`.
+3. Obtain an API key from [OpenRouter](https://openrouter.ai/) and add it to `server/.env`.
 
 ### 4. Run the backend
 
 ```bash
 cd server
-npm start
+npm run dev
 ```
 Runs on `http://localhost:5001` by default.
 
-### 5. Build and load the extension
+### 5. Run the frontend
 
 ```bash
-cd extension
-npm run build
+cd client
+npm run dev
 ```
-Then in `chrome://extensions`:
-1. Enable Developer Mode
-2. **Load unpacked** → select the `extension/dist` folder
+Runs on `http://localhost:5173` by default.
 
 ## Usage
 
-- Click the extension icon on any job posting page → confirm/edit the auto-filled details → **Log application**.
-- Click **Open Dashboard** to view, search, filter, update, or delete logged applications.
-- Click **Logout** on the dashboard to sign out (also clears the cached Google token so the account picker reappears on next login).
+- Select a target job role and experience level, then enter the **Interview Arena**.
+- Grant camera and microphone permissions when prompted.
+- Click **Begin Interview** — the AI speaks the initial question out loud and automatically opens your microphone as soon as it finishes.
+- Speak your response; the system detects silence for 5 seconds, automatically submits your answer, renders instant feedback, and advances to the next question.
+- Upon completion of 5 questions, navigate to **Performance Analytics** to inspect scores, feedback breakdowns, and progression charts over time.
 
 ## Development Notes
 
-- The extension popup and dashboard are separate browser contexts (popup unmounts on close; dashboard is a full tab) — auth state is shared through Firebase's persisted session plus a shared `AuthContext`.
-- Backend routes that mutate or fetch a specific job always scope queries by both `_id` and the requesting user's `userId` — never by `_id` alone — to prevent one user from accessing another's data.
-- When developing with `npm run dev` (Vite dev server), you may see harmless console errors from Vite's HMR client being blocked by the extension's CSP. This doesn't affect functionality; it goes away once you build (`npm run build`) and load the built output instead.
+- **Stale Closure Mitigation**: Asynchronous browser APIs (`setTimeout`) create closures that trap state snapshots. To prevent state trapping during automated answer submissions, rapidly changing state (`transcript`, `conversation`) is mirrored into background `useRef` pointers (`transcriptRef`, `conversationRef`).
+- **Event-Driven Handoff**: Turn-taking is completely event-driven. The speech synthesis `utterance.onend` handler triggers `SpeechRecognition.start()`, ensuring the AI never speaks over the user.
+- **Cascading Silence Detection**: Voice input utilizes a dual-timer approach—an absolute 7-second timer for total initial silence and a dynamic 5-second reset timer triggered by speech input (`onresult`)—to handle candidate hesitations gracefully.
 
 ## License
 
