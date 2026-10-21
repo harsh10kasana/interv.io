@@ -186,7 +186,7 @@ const InterviewArena = () => {
 
   // runs when user clicks Begin / Resume button
   const handleBeginInterview = async () => {
-    // ask for mic permission (needs to be inside a click)
+    // ask for mic permission 
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStream.getTracks().forEach((t) => t.stop());
